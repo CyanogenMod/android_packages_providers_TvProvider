@@ -82,7 +82,7 @@ public class TvProvider extends ContentProvider {
     private static final String OP_UPDATE = "update";
     private static final String OP_DELETE = "delete";
 
-    private static final int DATABASE_VERSION = 23;
+    private static final int DATABASE_VERSION = 24;
     private static final String DATABASE_NAME = "tv.db";
     private static final String CHANNELS_TABLE = "channels";
     private static final String PROGRAMS_TABLE = "programs";
@@ -173,6 +173,14 @@ public class TvProvider extends ContentProvider {
                 CHANNELS_TABLE + "." + Channels.COLUMN_LOCKED);
         sChannelProjectionMap.put(Channels.COLUMN_INTERNAL_PROVIDER_DATA,
                 CHANNELS_TABLE + "." + Channels.COLUMN_INTERNAL_PROVIDER_DATA);
+        sChannelProjectionMap.put(Channels.COLUMN_INTERNAL_PROVIDER_FLAG1,
+                CHANNELS_TABLE + "." + Channels.COLUMN_INTERNAL_PROVIDER_FLAG1);
+        sChannelProjectionMap.put(Channels.COLUMN_INTERNAL_PROVIDER_FLAG2,
+                CHANNELS_TABLE + "." + Channels.COLUMN_INTERNAL_PROVIDER_FLAG2);
+        sChannelProjectionMap.put(Channels.COLUMN_INTERNAL_PROVIDER_FLAG3,
+                CHANNELS_TABLE + "." + Channels.COLUMN_INTERNAL_PROVIDER_FLAG3);
+        sChannelProjectionMap.put(Channels.COLUMN_INTERNAL_PROVIDER_FLAG4,
+                CHANNELS_TABLE + "." + Channels.COLUMN_INTERNAL_PROVIDER_FLAG4);
         sChannelProjectionMap.put(Channels.COLUMN_VERSION_NUMBER,
                 CHANNELS_TABLE + "." + Channels.COLUMN_VERSION_NUMBER);
 
@@ -275,6 +283,10 @@ public class TvProvider extends ContentProvider {
                     + Channels.COLUMN_SEARCHABLE + " INTEGER NOT NULL DEFAULT 1,"
                     + Channels.COLUMN_LOCKED + " INTEGER NOT NULL DEFAULT 0,"
                     + Channels.COLUMN_INTERNAL_PROVIDER_DATA + " BLOB,"
+                    + Channels.COLUMN_INTERNAL_PROVIDER_FLAG1 + " INTEGER,"
+                    + Channels.COLUMN_INTERNAL_PROVIDER_FLAG2 + " INTEGER,"
+                    + Channels.COLUMN_INTERNAL_PROVIDER_FLAG3 + " INTEGER,"
+                    + Channels.COLUMN_INTERNAL_PROVIDER_FLAG4 + " INTEGER,"
                     + CHANNELS_COLUMN_LOGO + " BLOB,"
                     + Channels.COLUMN_VERSION_NUMBER + " INTEGER,"
                     // Needed for foreign keys in other tables.
@@ -344,14 +356,29 @@ public class TvProvider extends ContentProvider {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            Log.i(TAG, "Upgrading from version " + oldVersion + " to " + newVersion
-                    + ", data will be lost!");
-            db.execSQL("DROP TABLE IF EXISTS " + DELETED_CHANNELS_TABLE);
-            db.execSQL("DROP TABLE IF EXISTS " + WATCHED_PROGRAMS_TABLE);
-            db.execSQL("DROP TABLE IF EXISTS " + PROGRAMS_TABLE);
-            db.execSQL("DROP TABLE IF EXISTS " + CHANNELS_TABLE);
+            if (oldVersion < 23) {
+                Log.i(TAG, "Upgrading from version " + oldVersion + " to " + newVersion
+                        + ", data will be lost!");
+                db.execSQL("DROP TABLE IF EXISTS " + DELETED_CHANNELS_TABLE);
+                db.execSQL("DROP TABLE IF EXISTS " + WATCHED_PROGRAMS_TABLE);
+                db.execSQL("DROP TABLE IF EXISTS " + PROGRAMS_TABLE);
+                db.execSQL("DROP TABLE IF EXISTS " + CHANNELS_TABLE);
 
-            onCreate(db);
+                onCreate(db);
+                return;
+            }
+
+            Log.i(TAG, "Upgrading from version " + oldVersion + " to " + newVersion + ".");
+            if (oldVersion == 23) {
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_INTERNAL_PROVIDER_FLAG1 + " INTEGER;");
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_INTERNAL_PROVIDER_FLAG2 + " INTEGER;");
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_INTERNAL_PROVIDER_FLAG3 + " INTEGER;");
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_INTERNAL_PROVIDER_FLAG4 + " INTEGER;");
+            }
         }
     }
 
