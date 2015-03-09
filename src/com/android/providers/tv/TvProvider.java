@@ -82,7 +82,7 @@ public class TvProvider extends ContentProvider {
     private static final String OP_UPDATE = "update";
     private static final String OP_DELETE = "delete";
 
-    private static final int DATABASE_VERSION = 24;
+    private static final int DATABASE_VERSION = 25;
     private static final String DATABASE_NAME = "tv.db";
     private static final String CHANNELS_TABLE = "channels";
     private static final String PROGRAMS_TABLE = "programs";
@@ -210,6 +210,14 @@ public class TvProvider extends ContentProvider {
         sProgramProjectionMap.put(Programs.COLUMN_THUMBNAIL_URI, Programs.COLUMN_THUMBNAIL_URI);
         sProgramProjectionMap.put(Programs.COLUMN_INTERNAL_PROVIDER_DATA,
                 Programs.COLUMN_INTERNAL_PROVIDER_DATA);
+        sProgramProjectionMap.put(Programs.COLUMN_INTERNAL_PROVIDER_FLAG1,
+                Programs.COLUMN_INTERNAL_PROVIDER_FLAG1);
+        sProgramProjectionMap.put(Programs.COLUMN_INTERNAL_PROVIDER_FLAG2,
+                Programs.COLUMN_INTERNAL_PROVIDER_FLAG2);
+        sProgramProjectionMap.put(Programs.COLUMN_INTERNAL_PROVIDER_FLAG3,
+                Programs.COLUMN_INTERNAL_PROVIDER_FLAG3);
+        sProgramProjectionMap.put(Programs.COLUMN_INTERNAL_PROVIDER_FLAG4,
+                Programs.COLUMN_INTERNAL_PROVIDER_FLAG4);
         sProgramProjectionMap.put(Programs.COLUMN_VERSION_NUMBER, Programs.COLUMN_VERSION_NUMBER);
 
         sWatchedProgramProjectionMap = new HashMap<String, String>();
@@ -313,6 +321,10 @@ public class TvProvider extends ContentProvider {
                     + Programs.COLUMN_POSTER_ART_URI + " TEXT,"
                     + Programs.COLUMN_THUMBNAIL_URI + " TEXT,"
                     + Programs.COLUMN_INTERNAL_PROVIDER_DATA + " BLOB,"
+                    + Programs.COLUMN_INTERNAL_PROVIDER_FLAG1 + " INTEGER,"
+                    + Programs.COLUMN_INTERNAL_PROVIDER_FLAG2 + " INTEGER,"
+                    + Programs.COLUMN_INTERNAL_PROVIDER_FLAG3 + " INTEGER,"
+                    + Programs.COLUMN_INTERNAL_PROVIDER_FLAG4 + " INTEGER,"
                     + Programs.COLUMN_VERSION_NUMBER + " INTEGER,"
                     + "FOREIGN KEY("
                             + Programs.COLUMN_CHANNEL_ID + "," + Programs.COLUMN_PACKAGE_NAME
@@ -378,6 +390,17 @@ public class TvProvider extends ContentProvider {
                         + Channels.COLUMN_INTERNAL_PROVIDER_FLAG3 + " INTEGER;");
                 db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
                         + Channels.COLUMN_INTERNAL_PROVIDER_FLAG4 + " INTEGER;");
+                oldVersion++;
+            }
+            if (oldVersion == 24) {
+                db.execSQL("ALTER TABLE " + PROGRAMS_TABLE + " ADD "
+                        + Programs.COLUMN_INTERNAL_PROVIDER_FLAG1 + " INTEGER;");
+                db.execSQL("ALTER TABLE " + PROGRAMS_TABLE + " ADD "
+                        + Programs.COLUMN_INTERNAL_PROVIDER_FLAG2 + " INTEGER;");
+                db.execSQL("ALTER TABLE " + PROGRAMS_TABLE + " ADD "
+                        + Programs.COLUMN_INTERNAL_PROVIDER_FLAG3 + " INTEGER;");
+                db.execSQL("ALTER TABLE " + PROGRAMS_TABLE + " ADD "
+                        + Programs.COLUMN_INTERNAL_PROVIDER_FLAG4 + " INTEGER;");
             }
         }
     }
