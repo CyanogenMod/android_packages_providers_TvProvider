@@ -94,8 +94,6 @@ public class TvProvider extends ContentProvider {
     private static final String PROGRAMS_TABLE_END_TIME_INDEX = "programs_end_time_index";
     private static final String WATCHED_PROGRAMS_TABLE_CHANNEL_ID_INDEX =
             "watched_programs_channel_id_index";
-    private static final String DEFAULT_CHANNELS_SORT_ORDER = Channels.COLUMN_DISPLAY_NUMBER
-            + " ASC";
     private static final String DEFAULT_PROGRAMS_SORT_ORDER = Programs.COLUMN_START_TIME_UTC_MILLIS
             + " ASC";
     private static final String DEFAULT_WATCHED_PROGRAMS_SORT_ORDER =
@@ -496,7 +494,7 @@ public class TvProvider extends ContentProvider {
 
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
         queryBuilder.setTables(params.getTables());
-        String orderBy;
+        String orderBy = null;
         if (params.getTables().equals(PROGRAMS_TABLE)) {
             queryBuilder.setProjectionMap(sProgramProjectionMap);
             orderBy = DEFAULT_PROGRAMS_SORT_ORDER;
@@ -505,7 +503,6 @@ public class TvProvider extends ContentProvider {
             orderBy = DEFAULT_WATCHED_PROGRAMS_SORT_ORDER;
         } else {
             queryBuilder.setProjectionMap(sChannelProjectionMap);
-            orderBy = DEFAULT_CHANNELS_SORT_ORDER;
         }
 
         // Use the default sort order only if no sort order is specified.
