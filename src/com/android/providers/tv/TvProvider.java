@@ -487,22 +487,26 @@ public class TvProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
-        if (needsToLimitPackage(uri) && !TextUtils.isEmpty(sortOrder)) {
-            throw new SecurityException("Sort order not allowed for " + uri);
-        }
+        boolean needsToValidateSortOrder = needsToLimitPackage(uri);
         SqlParams params = createSqlParams(OP_QUERY, uri, selection, selectionArgs);
 
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
+        queryBuilder.setStrict(needsToValidateSortOrder);
         queryBuilder.setTables(params.getTables());
         String orderBy = null;
+        Map<String, String> projectionMap;
         if (params.getTables().equals(PROGRAMS_TABLE)) {
-            queryBuilder.setProjectionMap(sProgramProjectionMap);
+            projectionMap = sProgramProjectionMap;
             orderBy = DEFAULT_PROGRAMS_SORT_ORDER;
         } else if (params.getTables().equals(WATCHED_PROGRAMS_TABLE)) {
-            queryBuilder.setProjectionMap(sWatchedProgramProjectionMap);
+            projectionMap = sWatchedProgramProjectionMap;
             orderBy = DEFAULT_WATCHED_PROGRAMS_SORT_ORDER;
         } else {
-            queryBuilder.setProjectionMap(sChannelProjectionMap);
+            projectionMap = sChannelProjectionMap;
+        }
+        queryBuilder.setProjectionMap(projectionMap);
+        if (needsToValidateSortOrder) {
+            validateSortOrder(sortOrder, projectionMap.keySet());
         }
 
         // Use the default sort order only if no sort order is specified.
@@ -929,6 +933,25 @@ public class TvProvider extends ContentProvider {
                 FileNotFoundException fne = new FileNotFoundException(uri.toString());
                 fne.initCause(ioe);
                 throw fne;
+            }
+        }
+    }
+
+    /**
+     * Validates the sort order based on the given field set.
+     *
+     * @throws IllegalArgumentException if there is any unknown field.
+     */
+    private static void validateSortOrder(String sortOrder, Set<String> possibleFields) {
+        if (TextUtils.isEmpty(sortOrder) || possibleFields.isEmpty()) {
+            return;
+        }
+        String[] orders = sortOrder.split(",");
+        for (String order : orders) {
+            String field = order.replaceAll("\\s+", " ").trim().toLowerCase().replace(" asc", "")
+                    .replace(" desc", "");
+            if (!possibleFields.contains(field)) {
+                throw new IllegalArgumentException("Illegal field in sort order " + order);
             }
         }
     }
