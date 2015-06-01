@@ -60,7 +60,6 @@ import com.google.android.collect.Sets;
 import libcore.io.IoUtils;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -252,11 +251,8 @@ public class TvProvider extends ContentProvider {
             "com.android.providers.tv.permission.ACCESS_WATCHED_PROGRAMS";
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
-        private final Context mContext;
-
         DatabaseHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
-            mContext = context;
         }
 
         @Override
@@ -942,6 +938,7 @@ public class TvProvider extends ContentProvider {
      *
      * @throws IllegalArgumentException if there is any unknown field.
      */
+    @SuppressLint("DefaultLocale")
     private static void validateSortOrder(String sortOrder, Set<String> possibleFields) {
         if (TextUtils.isEmpty(sortOrder) || possibleFields.isEmpty()) {
             return;
@@ -1021,6 +1018,7 @@ public class TvProvider extends ContentProvider {
         db.delete(WATCHED_PROGRAMS_TABLE, WATCHED_PROGRAMS_COLUMN_CONSOLIDATED + "=0", null);
     }
 
+    @SuppressLint("HandlerLeak")
     private final class WatchLogHandler extends Handler {
         private static final int MSG_CONSOLIDATE = 1;
         private static final int MSG_TRY_CONSOLIDATE_ALL = 2;
