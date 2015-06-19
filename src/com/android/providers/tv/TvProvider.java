@@ -662,7 +662,14 @@ public class TvProvider extends ContentProvider {
             if (!TextUtils.isEmpty(selection)) {
                 throw new SecurityException("Selection not allowed for " + uri);
             }
-            params.setWhere(BaseTvColumns.COLUMN_PACKAGE_NAME + "=?", getCallingPackage_());
+            // Limit the operation only to the data that the calling package owns except for query.
+            if (operation.equals(OP_QUERY)) {
+                params.setWhere(BaseTvColumns.COLUMN_PACKAGE_NAME + "=? OR "
+                        + Channels.COLUMN_SEARCHABLE + "=?", getCallingPackage_(), "1");
+
+            } else {
+                params.setWhere(BaseTvColumns.COLUMN_PACKAGE_NAME + "=?", getCallingPackage_());
+            }
         }
         switch (sUriMatcher.match(uri)) {
             case MATCH_CHANNEL:
