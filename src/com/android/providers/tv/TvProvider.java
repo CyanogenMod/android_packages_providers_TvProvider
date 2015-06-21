@@ -81,7 +81,7 @@ public class TvProvider extends ContentProvider {
     private static final String OP_UPDATE = "update";
     private static final String OP_DELETE = "delete";
 
-    private static final int DATABASE_VERSION = 25;
+    private static final int DATABASE_VERSION = 26;
     private static final String DATABASE_NAME = "tv.db";
     private static final String CHANNELS_TABLE = "channels";
     private static final String PROGRAMS_TABLE = "programs";
@@ -168,6 +168,16 @@ public class TvProvider extends ContentProvider {
                 CHANNELS_TABLE + "." + Channels.COLUMN_SEARCHABLE);
         sChannelProjectionMap.put(Channels.COLUMN_LOCKED,
                 CHANNELS_TABLE + "." + Channels.COLUMN_LOCKED);
+        sChannelProjectionMap.put(Channels.COLUMN_APP_LINK_ICON_URI,
+                CHANNELS_TABLE + "." + Channels.COLUMN_APP_LINK_ICON_URI);
+        sChannelProjectionMap.put(Channels.COLUMN_APP_LINK_POSTER_ART_URI,
+                CHANNELS_TABLE + "." + Channels.COLUMN_APP_LINK_POSTER_ART_URI);
+        sChannelProjectionMap.put(Channels.COLUMN_APP_LINK_TEXT,
+                CHANNELS_TABLE + "." + Channels.COLUMN_APP_LINK_TEXT);
+        sChannelProjectionMap.put(Channels.COLUMN_APP_LINK_COLOR,
+                CHANNELS_TABLE + "." + Channels.COLUMN_APP_LINK_COLOR);
+        sChannelProjectionMap.put(Channels.COLUMN_APP_LINK_INTENT_URI,
+                CHANNELS_TABLE + "." + Channels.COLUMN_APP_LINK_INTENT_URI);
         sChannelProjectionMap.put(Channels.COLUMN_INTERNAL_PROVIDER_DATA,
                 CHANNELS_TABLE + "." + Channels.COLUMN_INTERNAL_PROVIDER_DATA);
         sChannelProjectionMap.put(Channels.COLUMN_INTERNAL_PROVIDER_FLAG1,
@@ -205,6 +215,7 @@ public class TvProvider extends ContentProvider {
         sProgramProjectionMap.put(Programs.COLUMN_CONTENT_RATING, Programs.COLUMN_CONTENT_RATING);
         sProgramProjectionMap.put(Programs.COLUMN_POSTER_ART_URI, Programs.COLUMN_POSTER_ART_URI);
         sProgramProjectionMap.put(Programs.COLUMN_THUMBNAIL_URI, Programs.COLUMN_THUMBNAIL_URI);
+        sProgramProjectionMap.put(Programs.COLUMN_SEARCHABLE, Programs.COLUMN_SEARCHABLE);
         sProgramProjectionMap.put(Programs.COLUMN_INTERNAL_PROVIDER_DATA,
                 Programs.COLUMN_INTERNAL_PROVIDER_DATA);
         sProgramProjectionMap.put(Programs.COLUMN_INTERNAL_PROVIDER_FLAG1,
@@ -284,6 +295,11 @@ public class TvProvider extends ContentProvider {
                     + Channels.COLUMN_BROWSABLE + " INTEGER NOT NULL DEFAULT 0,"
                     + Channels.COLUMN_SEARCHABLE + " INTEGER NOT NULL DEFAULT 1,"
                     + Channels.COLUMN_LOCKED + " INTEGER NOT NULL DEFAULT 0,"
+                    + Channels.COLUMN_APP_LINK_ICON_URI + " TEXT,"
+                    + Channels.COLUMN_APP_LINK_POSTER_ART_URI + " TEXT,"
+                    + Channels.COLUMN_APP_LINK_TEXT + " TEXT,"
+                    + Channels.COLUMN_APP_LINK_COLOR + " INTEGER,"
+                    + Channels.COLUMN_APP_LINK_INTENT_URI + " TEXT,"
                     + Channels.COLUMN_INTERNAL_PROVIDER_DATA + " BLOB,"
                     + Channels.COLUMN_INTERNAL_PROVIDER_FLAG1 + " INTEGER,"
                     + Channels.COLUMN_INTERNAL_PROVIDER_FLAG2 + " INTEGER,"
@@ -314,6 +330,7 @@ public class TvProvider extends ContentProvider {
                     + Programs.COLUMN_CONTENT_RATING + " TEXT,"
                     + Programs.COLUMN_POSTER_ART_URI + " TEXT,"
                     + Programs.COLUMN_THUMBNAIL_URI + " TEXT,"
+                    + Programs.COLUMN_SEARCHABLE + " INTEGER NOT NULL DEFAULT 1,"
                     + Programs.COLUMN_INTERNAL_PROVIDER_DATA + " BLOB,"
                     + Programs.COLUMN_INTERNAL_PROVIDER_FLAG1 + " INTEGER,"
                     + Programs.COLUMN_INTERNAL_PROVIDER_FLAG2 + " INTEGER,"
@@ -395,6 +412,21 @@ public class TvProvider extends ContentProvider {
                         + Programs.COLUMN_INTERNAL_PROVIDER_FLAG3 + " INTEGER;");
                 db.execSQL("ALTER TABLE " + PROGRAMS_TABLE + " ADD "
                         + Programs.COLUMN_INTERNAL_PROVIDER_FLAG4 + " INTEGER;");
+                oldVersion++;
+            }
+            if (oldVersion == 25) {
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_APP_LINK_ICON_URI + " TEXT;");
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_APP_LINK_POSTER_ART_URI + " TEXT;");
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_APP_LINK_TEXT + " TEXT;");
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_APP_LINK_COLOR + " INTEGER;");
+                db.execSQL("ALTER TABLE " + CHANNELS_TABLE + " ADD "
+                        + Channels.COLUMN_APP_LINK_INTENT_URI + " TEXT;");
+                db.execSQL("ALTER TABLE " + PROGRAMS_TABLE + " ADD "
+                        + Programs.COLUMN_SEARCHABLE + " INTEGER NOT NULL DEFAULT 1;");
             }
         }
     }
