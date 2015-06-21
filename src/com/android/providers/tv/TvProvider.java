@@ -935,7 +935,8 @@ public class TvProvider extends ContentProvider {
         SqlParams params = new SqlParams(CHANNELS_TABLE, Channels._ID + "=?",
                 String.valueOf(channelId));
         if (!callerHasAccessAllEpgDataPermission()) {
-            params.appendWhere(Channels.COLUMN_PACKAGE_NAME + "=?", getCallingPackage_());
+            params.appendWhere(Channels.COLUMN_PACKAGE_NAME + "=? OR " + Channels.COLUMN_SEARCHABLE
+                    + "=?", getCallingPackage_(), "1");
         }
 
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
@@ -946,7 +947,8 @@ public class TvProvider extends ContentProvider {
         if (mode.equals("r")) {
             String sql = queryBuilder.buildQuery(new String[] { CHANNELS_COLUMN_LOGO },
                     params.getSelection(), null, null, null, null);
-            ParcelFileDescriptor fd = DatabaseUtils.blobFileDescriptorForQuery(db, sql, params.getSelectionArgs());
+            ParcelFileDescriptor fd = DatabaseUtils.blobFileDescriptorForQuery(
+                    db, sql, params.getSelectionArgs());
             if (fd == null) {
                 throw new FileNotFoundException(uri.toString());
             }
