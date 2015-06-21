@@ -55,7 +55,6 @@ import android.util.Log;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.os.SomeArgs;
 import com.android.providers.tv.util.SqlParams;
-import com.google.android.collect.Sets;
 
 import libcore.io.IoUtils;
 
@@ -121,9 +120,9 @@ public class TvProvider extends ContentProvider {
 
     private static final long MAX_PROGRAM_DATA_DELAY_IN_MILLIS = 10 * 1000; // 10 seconds
 
-    private static Map<String, String> sChannelProjectionMap;
-    private static Map<String, String> sProgramProjectionMap;
-    private static Map<String, String> sWatchedProgramProjectionMap;
+    private static final Map<String, String> sChannelProjectionMap;
+    private static final Map<String, String> sProgramProjectionMap;
+    private static final Map<String, String> sWatchedProgramProjectionMap;
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -136,7 +135,7 @@ public class TvProvider extends ContentProvider {
         sUriMatcher.addURI(TvContract.AUTHORITY, "watched_program", MATCH_WATCHED_PROGRAM);
         sUriMatcher.addURI(TvContract.AUTHORITY, "watched_program/#", MATCH_WATCHED_PROGRAM_ID);
 
-        sChannelProjectionMap = new HashMap<String, String>();
+        sChannelProjectionMap = new HashMap<>();
         sChannelProjectionMap.put(Channels._ID, CHANNELS_TABLE + "." + Channels._ID);
         sChannelProjectionMap.put(Channels.COLUMN_PACKAGE_NAME,
                 CHANNELS_TABLE + "." + Channels.COLUMN_PACKAGE_NAME);
@@ -191,7 +190,7 @@ public class TvProvider extends ContentProvider {
         sChannelProjectionMap.put(Channels.COLUMN_VERSION_NUMBER,
                 CHANNELS_TABLE + "." + Channels.COLUMN_VERSION_NUMBER);
 
-        sProgramProjectionMap = new HashMap<String, String>();
+        sProgramProjectionMap = new HashMap<>();
         sProgramProjectionMap.put(Programs._ID, Programs._ID);
         sProgramProjectionMap.put(Programs.COLUMN_PACKAGE_NAME, Programs.COLUMN_PACKAGE_NAME);
         sProgramProjectionMap.put(Programs.COLUMN_CHANNEL_ID, Programs.COLUMN_CHANNEL_ID);
@@ -228,7 +227,7 @@ public class TvProvider extends ContentProvider {
                 Programs.COLUMN_INTERNAL_PROVIDER_FLAG4);
         sProgramProjectionMap.put(Programs.COLUMN_VERSION_NUMBER, Programs.COLUMN_VERSION_NUMBER);
 
-        sWatchedProgramProjectionMap = new HashMap<String, String>();
+        sWatchedProgramProjectionMap = new HashMap<>();
         sWatchedProgramProjectionMap.put(WatchedPrograms._ID, WatchedPrograms._ID);
         sWatchedProgramProjectionMap.put(WatchedPrograms.COLUMN_WATCH_START_TIME_UTC_MILLIS,
                 WatchedPrograms.COLUMN_WATCH_START_TIME_UTC_MILLIS);
@@ -464,7 +463,7 @@ public class TvProvider extends ContentProvider {
             return;
         }
 
-        sGenreMap = new HashMap<String, String>();
+        sGenreMap = new HashMap<>();
         buildGenreMap(R.array.genre_mapping_atsc);
         buildGenreMap(R.array.genre_mapping_dvb);
         buildGenreMap(R.array.genre_mapping_isdb);
@@ -523,14 +522,18 @@ public class TvProvider extends ContentProvider {
         queryBuilder.setTables(params.getTables());
         String orderBy = null;
         Map<String, String> projectionMap;
-        if (params.getTables().equals(PROGRAMS_TABLE)) {
-            projectionMap = sProgramProjectionMap;
-            orderBy = DEFAULT_PROGRAMS_SORT_ORDER;
-        } else if (params.getTables().equals(WATCHED_PROGRAMS_TABLE)) {
-            projectionMap = sWatchedProgramProjectionMap;
-            orderBy = DEFAULT_WATCHED_PROGRAMS_SORT_ORDER;
-        } else {
-            projectionMap = sChannelProjectionMap;
+        switch (params.getTables()) {
+            case PROGRAMS_TABLE:
+                projectionMap = sProgramProjectionMap;
+                orderBy = DEFAULT_PROGRAMS_SORT_ORDER;
+                break;
+            case WATCHED_PROGRAMS_TABLE:
+                projectionMap = sWatchedProgramProjectionMap;
+                orderBy = DEFAULT_WATCHED_PROGRAMS_SORT_ORDER;
+                break;
+            default:
+                projectionMap = sChannelProjectionMap;
+                break;
         }
         queryBuilder.setProjectionMap(projectionMap);
         if (needsToValidateSortOrder) {
@@ -640,7 +643,7 @@ public class TvProvider extends ContentProvider {
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         SqlParams params = createSqlParams(OP_DELETE, uri, selection, selectionArgs);
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
-        int count = 0;
+        int count;
         switch (sUriMatcher.match(uri)) {
             case MATCH_CHANNEL_ID_LOGO:
                 ContentValues values = new ContentValues();
@@ -807,7 +810,7 @@ public class TvProvider extends ContentProvider {
             // genre.
             String broadcastGenres = values.getAsString(Programs.COLUMN_BROADCAST_GENRE);
             if (!TextUtils.isEmpty(broadcastGenres)) {
-                Set<String> genreSet = new HashSet<String>();
+                Set<String> genreSet = new HashSet<>();
                 String[] genres = Genres.decode(broadcastGenres);
                 for (String genre : genres) {
                     String canonicalGenre = sGenreMap.get(genre.toUpperCase());
@@ -817,7 +820,7 @@ public class TvProvider extends ContentProvider {
                 }
                 if (genreSet.size() > 0) {
                     values.put(Programs.COLUMN_CANONICAL_GENRE,
-                            Genres.encode(genreSet.toArray(new String[0])));
+                            Genres.encode(genreSet.toArray(new String[genreSet.size()])));
                 }
             }
         }
@@ -825,8 +828,7 @@ public class TvProvider extends ContentProvider {
 
     // We might have more than one thread trying to make its way through applyBatch() so the
     // notification coalescing needs to be thread-local to work correctly.
-    private final ThreadLocal<Set<Uri>> mTLBatchNotifications =
-            new ThreadLocal<Set<Uri>>();
+    private final ThreadLocal<Set<Uri>> mTLBatchNotifications = new ThreadLocal<>();
 
     private Set<Uri> getBatchNotificationsSet() {
         return mTLBatchNotifications.get();
@@ -839,7 +841,7 @@ public class TvProvider extends ContentProvider {
     @Override
     public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
             throws OperationApplicationException {
-        setBatchNotificationsSet(Sets.<Uri>newHashSet());
+        setBatchNotificationsSet(new HashSet<Uri>());
         Context context = getContext();
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         db.beginTransaction();
@@ -859,7 +861,7 @@ public class TvProvider extends ContentProvider {
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] values) {
-        setBatchNotificationsSet(Sets.<Uri>newHashSet());
+        setBatchNotificationsSet(new HashSet<Uri>());
         Context context = getContext();
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         db.beginTransaction();
@@ -1052,7 +1054,7 @@ public class TvProvider extends ContentProvider {
         }
     }
 
-    private final void deleteUnconsolidatedWatchedProgramsRows() {
+    private void deleteUnconsolidatedWatchedProgramsRows() {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         db.delete(WATCHED_PROGRAMS_TABLE, WATCHED_PROGRAMS_COLUMN_CONSOLIDATED + "=0", null);
     }
@@ -1087,7 +1089,7 @@ public class TvProvider extends ContentProvider {
         // Consolidates all WatchedPrograms rows for a given session with watch end time information
         // of the most recent log entry. After this method is called, it is guaranteed that there
         // remain consolidated rows only for that session.
-        private final void onConsolidate(String sessionToken, long watchEndTime) {
+        private void onConsolidate(String sessionToken, long watchEndTime) {
             if (DEBUG) {
                 Log.d(TAG, "onConsolidate(sessionToken=" + sessionToken + ", watchEndTime="
                         + watchEndTime + ")");
@@ -1134,7 +1136,7 @@ public class TvProvider extends ContentProvider {
         // session that represents the user's ongoing watch activity.
         // Also, this method automatically schedules the next consolidation if there still remains
         // an unconsolidated entry.
-        private final void onTryConsolidateAll() {
+        private void onTryConsolidateAll() {
             if (DEBUG) {
                 Log.d(TAG, "onTryConsolidateAll()");
             }
@@ -1203,8 +1205,8 @@ public class TvProvider extends ContentProvider {
         // consolidating the most recent row because the user stayed on the same channel for a very
         // long time.
         // This method returns the number of consolidated rows, which can be 0 or more.
-        private final int consolidateRow(long id, long watchStartTime, long watchEndTime,
-                long channelId, boolean dryRun) {
+        private int consolidateRow(
+                long id, long watchStartTime, long watchEndTime, long channelId, boolean dryRun) {
             if (DEBUG) {
                 Log.d(TAG, "consolidateRow(id=" + id + ", watchStartTime=" + watchStartTime
                         + ", watchEndTime=" + watchEndTime + ", channelId=" + channelId
@@ -1255,7 +1257,7 @@ public class TvProvider extends ContentProvider {
 
         // Deletes the log entries from unsearchable channels. Note that only consolidated log
         // entries are safe to delete.
-        private final void deleteUnsearchable() {
+        private void deleteUnsearchable() {
             SQLiteDatabase db = mOpenHelper.getWritableDatabase();
             String deleteWhere = WATCHED_PROGRAMS_COLUMN_CONSOLIDATED + "=1 AND "
                     + WatchedPrograms.COLUMN_CHANNEL_ID + " IN (SELECT " + Channels._ID
@@ -1263,7 +1265,7 @@ public class TvProvider extends ContentProvider {
             db.delete(WATCHED_PROGRAMS_TABLE, deleteWhere, null);
         }
 
-        private final void scheduleConsolidationIfNeeded() {
+        private void scheduleConsolidationIfNeeded() {
             if (DEBUG) {
                 Log.d(TAG, "scheduleConsolidationIfNeeded()");
             }
@@ -1307,7 +1309,7 @@ public class TvProvider extends ContentProvider {
 
         // Returns non-null ContentValues of the program data that the user watched on the channel
         // {@code channelId} at the time {@code time}.
-        private final ContentValues getProgramValues(long channelId, long time) {
+        private ContentValues getProgramValues(long channelId, long time) {
             SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
             queryBuilder.setTables(PROGRAMS_TABLE);
             SQLiteDatabase db = mOpenHelper.getReadableDatabase();
@@ -1343,7 +1345,7 @@ public class TvProvider extends ContentProvider {
 
         // Duplicates the WatchedPrograms row with a given ID and returns the ID of the duplicated
         // row. Returns -1 if failed.
-        private final long duplicateRow(long id) {
+        private long duplicateRow(long id) {
             if (DEBUG) {
                 Log.d(TAG, "duplicateRow(" + id + ")");
             }
