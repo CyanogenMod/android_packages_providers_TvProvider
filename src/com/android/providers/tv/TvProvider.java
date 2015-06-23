@@ -254,6 +254,8 @@ public class TvProvider extends ContentProvider {
     // Mapping from broadcast genre to canonical genre.
     private static Map<String, String> sGenreMap;
 
+    private static final String PERMISSION_READ_TV_LISTINGS = "android.permission.READ_TV_LISTINGS";
+
     private static final String PERMISSION_ACCESS_ALL_EPG_DATA =
             "com.android.providers.tv.permission.ACCESS_ALL_EPG_DATA";
 
@@ -697,8 +699,9 @@ public class TvProvider extends ContentProvider {
             if (!TextUtils.isEmpty(selection)) {
                 throw new SecurityException("Selection not allowed for " + uri);
             }
-            // Limit the operation only to the data that the calling package owns except for query.
-            if (operation.equals(OP_QUERY)) {
+            // Limit the operation only to the data that the calling package owns except for when
+            // the caller tries to read TV listings and has the appropriate permission.
+            if (operation.equals(OP_QUERY) && callerHasReadTvListingsPermission()) {
                 params.setWhere(BaseTvColumns.COLUMN_PACKAGE_NAME + "=? OR "
                         + Channels.COLUMN_SEARCHABLE + "=?", getCallingPackage_(), "1");
 
@@ -903,6 +906,11 @@ public class TvProvider extends ContentProvider {
         return !callerHasAccessAllEpgDataPermission();
     }
 
+    private boolean callerHasReadTvListingsPermission() {
+        return getContext().checkCallingOrSelfPermission(PERMISSION_READ_TV_LISTINGS)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
     private boolean callerHasAccessAllEpgDataPermission() {
         return getContext().checkCallingOrSelfPermission(PERMISSION_ACCESS_ALL_EPG_DATA)
                 == PackageManager.PERMISSION_GRANTED;
@@ -935,8 +943,12 @@ public class TvProvider extends ContentProvider {
         SqlParams params = new SqlParams(CHANNELS_TABLE, Channels._ID + "=?",
                 String.valueOf(channelId));
         if (!callerHasAccessAllEpgDataPermission()) {
-            params.appendWhere(Channels.COLUMN_PACKAGE_NAME + "=? OR " + Channels.COLUMN_SEARCHABLE
-                    + "=?", getCallingPackage_(), "1");
+            if (callerHasReadTvListingsPermission()) {
+                params.appendWhere(Channels.COLUMN_PACKAGE_NAME + "=? OR "
+                        + Channels.COLUMN_SEARCHABLE + "=?", getCallingPackage_(), "1");
+            } else {
+                params.appendWhere(Channels.COLUMN_PACKAGE_NAME + "=?", getCallingPackage_());
+            }
         }
 
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
