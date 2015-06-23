@@ -516,7 +516,7 @@ public class TvProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
-        boolean needsToValidateSortOrder = needsToLimitPackage(uri);
+        boolean needsToValidateSortOrder = !callerHasAccessAllEpgDataPermission();
         SqlParams params = createSqlParams(OP_QUERY, uri, selection, selectionArgs);
 
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
@@ -695,7 +695,7 @@ public class TvProvider extends ContentProvider {
     private SqlParams createSqlParams(String operation, Uri uri, String selection,
             String[] selectionArgs) {
         SqlParams params = new SqlParams(null, selection, selectionArgs);
-        if (needsToLimitPackage(uri)) {
+        if (!callerHasAccessAllEpgDataPermission()) {
             if (!TextUtils.isEmpty(selection)) {
                 throw new SecurityException("Selection not allowed for " + uri);
             }
@@ -764,10 +764,16 @@ public class TvProvider extends ContentProvider {
                 params.appendWhere(Programs._ID + "=?", uri.getLastPathSegment());
                 break;
             case MATCH_WATCHED_PROGRAM:
+                if (!callerHasAccessWatchedProgramsPermission()) {
+                    throw new SecurityException("Access not allowed for " + uri);
+                }
                 params.setTables(WATCHED_PROGRAMS_TABLE);
                 params.appendWhere(WATCHED_PROGRAMS_COLUMN_CONSOLIDATED + "=?", "1");
                 break;
             case MATCH_WATCHED_PROGRAM_ID:
+                if (!callerHasAccessWatchedProgramsPermission()) {
+                    throw new SecurityException("Access not allowed for " + uri);
+                }
                 params.setTables(WATCHED_PROGRAMS_TABLE);
                 params.appendWhere(WatchedPrograms._ID + "=?", uri.getLastPathSegment());
                 params.appendWhere(WATCHED_PROGRAMS_COLUMN_CONSOLIDATED + "=?", "1");
@@ -889,21 +895,6 @@ public class TvProvider extends ContentProvider {
         } else {
             getContext().getContentResolver().notifyChange(uri, null);
         }
-    }
-
-    // When an application tries to create/read/update/delete channel or program data, we need to
-    // ensure that such an access is limited to the data entries it owns, unless it has the full
-    // access permission.
-    // Note that the user's watch log is treated with more caution and we should block any access
-    // from an application that doesn't have the proper permission.
-    private boolean needsToLimitPackage(Uri uri) {
-        int match = sUriMatcher.match(uri);
-        if (match == MATCH_WATCHED_PROGRAM || match == MATCH_WATCHED_PROGRAM_ID) {
-            if (!callerHasAccessWatchedProgramsPermission()) {
-                throw new SecurityException("Access not allowed for " + uri);
-            }
-        }
-        return !callerHasAccessAllEpgDataPermission();
     }
 
     private boolean callerHasReadTvListingsPermission() {
