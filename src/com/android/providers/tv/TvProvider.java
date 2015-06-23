@@ -694,8 +694,13 @@ public class TvProvider extends ContentProvider {
 
     private SqlParams createSqlParams(String operation, Uri uri, String selection,
             String[] selectionArgs) {
+        int match = sUriMatcher.match(uri);
         SqlParams params = new SqlParams(null, selection, selectionArgs);
-        if (!callerHasAccessAllEpgDataPermission()) {
+
+        // Control access to EPG data (excluding watched programs) when the caller doesn't have all
+        // access.
+        if (!callerHasAccessAllEpgDataPermission()
+                && match != MATCH_WATCHED_PROGRAM && match != MATCH_WATCHED_PROGRAM_ID) {
             if (!TextUtils.isEmpty(selection)) {
                 throw new SecurityException("Selection not allowed for " + uri);
             }
@@ -709,7 +714,8 @@ public class TvProvider extends ContentProvider {
                 params.setWhere(BaseTvColumns.COLUMN_PACKAGE_NAME + "=?", getCallingPackage_());
             }
         }
-        switch (sUriMatcher.match(uri)) {
+
+        switch (match) {
             case MATCH_CHANNEL:
                 String genre = uri.getQueryParameter(TvContract.PARAM_CANONICAL_GENRE);
                 if (genre == null) {
@@ -786,8 +792,7 @@ public class TvProvider extends ContentProvider {
                 }
                 // fall-through
             case MATCH_PASSTHROUGH_ID:
-                throw new UnsupportedOperationException("Cannot " + operation + " that URI: "
-                        + uri);
+                throw new UnsupportedOperationException(operation + " not permmitted on " + uri);
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
