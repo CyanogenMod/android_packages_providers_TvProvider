@@ -627,7 +627,8 @@ public class TvProvider extends ContentProvider {
                         MAX_PROGRAM_DATA_DELAY_IN_MILLIS);
                 return TvContract.buildWatchedProgramUri(rowId);
             }
-            throw new SQLException("Failed to insert row into " + uri);
+            Log.w(TAG, "Failed to insert row for " + values + ". Channel does not exist.");
+            return null;
         } else if (watchStartTime == null && watchEndTime != null) {
             SomeArgs args = SomeArgs.obtain();
             args.arg1 = values.getAsString(WatchedPrograms.COLUMN_INTERNAL_SESSION_TOKEN);
