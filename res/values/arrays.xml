@@ -16,7 +16,7 @@
 
 <resources>
     <!-- Category mapping from ATSC to canonical genre -->
-    <string-array name="genre_mapping_atsc">
+    <string-array name="genre_mapping_atsc" translatable="false">
         <item>Education|EDUCATION</item>
         <item>Entertainment|ENTERTAINMENT</item>
         <item>Movie|MOVIES</item>
@@ -162,7 +162,7 @@
     </string-array>
 
     <!-- Category mapping from DVB to canonical genre -->
-    <string-array name="genre_mapping_dvb">
+    <string-array name="genre_mapping_dvb" translatable="false">
         <item>movie/drama|MOVIES</item>
         <item>detective/thriller|MOVIES</item>
         <item>adventure/western/war|MOVIES</item>
@@ -245,7 +245,7 @@
     </string-array>
 
     <!-- Category mapping from ISDB to canonical genre -->
-    <string-array name="genre_mapping_isdb">
+    <string-array name="genre_mapping_isdb" translatable="false">
         <item>Animation|MOVIES</item>
         <item>Baseball|SPORTS</item>
         <item>Children\'s song|MUSIC</item>
@@ -323,7 +323,7 @@
     </string-array>
 
     <!-- Category mapping from ISDB in Brazil to canonical genre -->
-    <string-array name="genre_mapping_isdb_br">
+    <string-array name="genre_mapping_isdb_br" translatable="false">
         <item>Biografia|NEWS</item>
         <item>Culinária|LIFE_STYLE</item>
         <item>Documentário|NEWS</item>
