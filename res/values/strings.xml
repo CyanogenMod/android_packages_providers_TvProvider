@@ -27,30 +27,30 @@
     <!-- Title of an application permission, listed so the user can choose
         whether they want to allow the application to do this.
         @deprecated -->
-    <string name="permlab_readEpgData">read TV listings</string>
+    <string name="permlab_readEpgData" translatable="false">read TV listings</string>
     <!-- Description of an application permission, listed so the user can choose
         whether they want to allow the application to do this.
         @deprecated -->
-    <string name="permdesc_readEpgData">read TV listings</string>
+    <string name="permdesc_readEpgData" translatable="false">read TV listings</string>
 
     <!-- Title of an application permission, listed so the user can choose
         whether they want to allow the application to do this. -->
-    <string name="permlab_writeEpgData">provide TV listings</string>
+    <string name="permlab_writeEpgData" translatable="false">provide TV listings</string>
     <!-- Description of an application permission, listed so the user can choose
         whether they want to allow the application to do this. -->
-    <string name="permdesc_writeEpgData">provide TV listings</string>
+    <string name="permdesc_writeEpgData" translatable="false">provide TV listings</string>
 
     <!-- Title of an application permission, listed so the user can choose
         whether they want to allow the application to do this. -->
-    <string name="permlab_accessAllEpgData">access all TV listings</string>
+    <string name="permlab_accessAllEpgData" translatable="false">access all TV listings</string>
     <!-- Description of an application permission, listed so the user can choose
         whether they want to allow the application to do this. -->
-    <string name="permdesc_accessAllEpgData">read and modify all TV listings available on your device</string>
+    <string name="permdesc_accessAllEpgData" translatable="false">read and modify all TV listings available on your device</string>
 
     <!-- Title of an application permission, listed so the user can choose
         whether they want to allow the application to do this. -->
-    <string name="permlab_accessWatchedPrograms">access TV watch history</string>
+    <string name="permlab_accessWatchedPrograms" translatable="false">access TV watch history</string>
     <!-- Description of an application permission, listed so the user can choose
         whether they want to allow the application to do this. -->
-    <string name="permdesc_accessWatchedPrograms">access your TV watch history</string>
+    <string name="permdesc_accessWatchedPrograms" translatable="false">access your TV watch history</string>
 </resources>
