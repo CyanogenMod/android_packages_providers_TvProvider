@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_label" msgid="7454398782183407432">"Hifadhi ya TV"</string>
-    <string name="permlab_readTvListings" msgid="5272001606068276291">"kusoma orodha zote za TV"</string>
-    <string name="permdesc_readTvListings" msgid="1165157606059567535">"kusoma orodha zote za TV zilizo kwenye kifaa chako"</string>
+    <string name="app_label" msgid="7454398782183407432">"TV मेमोरी"</string>
+    <string name="permlab_readTvListings" msgid="5272001606068276291">"सभी TV सूचियां पढ़ें"</string>
+    <string name="permdesc_readTvListings" msgid="1165157606059567535">"अपने डिवाइस पर उपलब्ध सभी TV सूचियां देखें"</string>
 </resources>
