@@ -18,5 +18,5 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_label" msgid="7454398782183407432">"Telebistaren memoria"</string>
     <string name="permlab_readTvListings" msgid="5272001606068276291">"Irakurri kanal-zerrenda guztiak"</string>
-    <string name="permdesc_readTvListings" msgid="1165157606059567535">"Irakurri gailuan erabilgarri dauden kanal-zerrenda guztiak"</string>
+    <string name="permdesc_readTvListings" msgid="1165157606059567535">"Irakurri gailuan erabilgarri dagoen programazio osoa"</string>
 </resources>
