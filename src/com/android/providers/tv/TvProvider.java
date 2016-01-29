@@ -642,6 +642,9 @@ public class TvProvider extends ContentProvider {
                 projectionMap = sWatchedProgramProjectionMap;
                 orderBy = DEFAULT_WATCHED_PROGRAMS_SORT_ORDER;
                 break;
+            case RECORDED_PROGRAMS_TABLE:
+                projectionMap = sRecordedProgramProjectionMap;
+                break;
             default:
                 projectionMap = sChannelProjectionMap;
                 break;
@@ -917,11 +920,16 @@ public class TvProvider extends ContentProvider {
                 params.appendWhere(WatchedPrograms._ID + "=?", uri.getLastPathSegment());
                 params.appendWhere(WATCHED_PROGRAMS_COLUMN_CONSOLIDATED + "=?", "1");
                 break;
-            case MATCH_RECORDED_PROGRAM:
-                params.setTables(RECORDED_PROGRAMS_TABLE);
-                // fall-through
             case MATCH_RECORDED_PROGRAM_ID:
                 params.appendWhere(RecordedPrograms._ID + "=?", uri.getLastPathSegment());
+                // fall-through
+            case MATCH_RECORDED_PROGRAM:
+                params.setTables(RECORDED_PROGRAMS_TABLE);
+                paramChannelId = uri.getQueryParameter(TvContract.PARAM_CHANNEL);
+                if (paramChannelId != null) {
+                    String channelId = String.valueOf(Long.parseLong(paramChannelId));
+                    params.appendWhere(Programs.COLUMN_CHANNEL_ID + "=?", channelId);
+                }
                 break;
             case MATCH_CHANNEL_ID_LOGO:
                 if (operation.equals(OP_DELETE)) {
