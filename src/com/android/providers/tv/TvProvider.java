@@ -263,6 +263,8 @@ public class TvProvider extends ContentProvider {
                 RecordedPrograms.COLUMN_PACKAGE_NAME);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_CHANNEL_ID,
                 RecordedPrograms.COLUMN_CHANNEL_ID);
+        sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_TITLE,
+                RecordedPrograms.COLUMN_TITLE);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_SEASON_NUMBER,
                 RecordedPrograms.COLUMN_SEASON_NUMBER);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_EPISODE_NUMBER,
