@@ -81,7 +81,7 @@ public class TvProvider extends ContentProvider {
     private static final String OP_UPDATE = "update";
     private static final String OP_DELETE = "delete";
 
-    private static final int DATABASE_VERSION = 27;
+    private static final int DATABASE_VERSION = 28;
     private static final String DATABASE_NAME = "tv.db";
     private static final String CHANNELS_TABLE = "channels";
     private static final String PROGRAMS_TABLE = "programs";
@@ -261,6 +261,8 @@ public class TvProvider extends ContentProvider {
         sRecordedProgramProjectionMap.put(RecordedPrograms._ID, RecordedPrograms._ID);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_PACKAGE_NAME,
                 RecordedPrograms.COLUMN_PACKAGE_NAME);
+        sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_INPUT_ID,
+                RecordedPrograms.COLUMN_INPUT_ID);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_CHANNEL_ID,
                 RecordedPrograms.COLUMN_CHANNEL_ID);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_TITLE,
@@ -334,6 +336,7 @@ public class TvProvider extends ContentProvider {
             "CREATE TABLE " + RECORDED_PROGRAMS_TABLE + " ("
             + RecordedPrograms._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
             + RecordedPrograms.COLUMN_PACKAGE_NAME + " TEXT NOT NULL,"
+            + RecordedPrograms.COLUMN_INPUT_ID + " TEXT NOT NULL,"
             + RecordedPrograms.COLUMN_CHANNEL_ID + " INTEGER,"
             + RecordedPrograms.COLUMN_TITLE + " TEXT,"
             + RecordedPrograms.COLUMN_SEASON_NUMBER + " INTEGER,"
@@ -532,9 +535,9 @@ public class TvProvider extends ContentProvider {
                         + Programs.COLUMN_SEARCHABLE + " INTEGER NOT NULL DEFAULT 1;");
                 oldVersion++;
             }
-            if (oldVersion == 26) {
+            if (oldVersion >= 26) {
+                db.execSQL("DROP TABLE IF EXISTS " + RECORDED_PROGRAMS_TABLE);
                 db.execSQL(CREATE_RECORDED_PROGRAMS_TABLE_SQL);
-                oldVersion++;
             }
         }
     }
