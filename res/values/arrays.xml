@@ -251,7 +251,10 @@
         <item>Baseball|SPORTS</item>
         <item>Children\'s song|MUSIC</item>
         <item>Classic, opera|MUSIC</item>
+        <!-- Obviously a typo but the latest revision of the standard ARIB STD - B10 Version 4.6-E2
+             still has it. Keep this for completeness. -->
         <item>Cocking variety|ENTERTAINMENT</item>
+        <item>Cooking variety|ENTERTAINMENT</item>
         <item>Comedy program|ENTERTAINMENT</item>
         <item>Comic story, Entertainment|ENTERTAINMENT</item>
         <item>Computer, TV games|TECH_SCIENCE</item>
@@ -271,7 +274,10 @@
         <item>General documentaries|EDUCATION</item>
         <item>Golf|SPORTS</item>
         <item>Gossip/tabloid show|ENTERTAINMENT</item>
+        <!-- Obviously a typo but the latest revision of the standard ARIB STD - B10 Version 4.6-E2
+             still has it. Keep this for completeness. -->
         <item>Gourmet, cocking|LIFE_STYLE</item>
+        <item>Gourmet, cooking|LIFE_STYLE</item>
         <item>Health, medical treatment|LIFE_STYLE</item>
         <item>History, Travels|EDUCATION</item>
         <item>Hobby/Education|LIFE_STYLE</item>
