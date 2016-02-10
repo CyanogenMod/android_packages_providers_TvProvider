@@ -844,12 +844,13 @@ public class TvProvider extends ContentProvider {
             }
             // Limit the operation only to the data that the calling package owns except for when
             // the caller tries to read TV listings and has the appropriate permission.
+            String prefix = match == MATCH_CHANNEL ? CHANNELS_TABLE + "." : "";
             if (operation.equals(OP_QUERY) && callerHasReadTvListingsPermission()) {
-                params.setWhere(BaseTvColumns.COLUMN_PACKAGE_NAME + "=? OR "
+                params.setWhere(prefix + BaseTvColumns.COLUMN_PACKAGE_NAME + "=? OR "
                         + Channels.COLUMN_SEARCHABLE + "=?", getCallingPackage_(), "1");
-
             } else {
-                params.setWhere(BaseTvColumns.COLUMN_PACKAGE_NAME + "=?", getCallingPackage_());
+                params.setWhere(prefix + BaseTvColumns.COLUMN_PACKAGE_NAME + "=?",
+                        getCallingPackage_());
             }
         }
 
