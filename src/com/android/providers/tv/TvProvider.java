@@ -81,7 +81,7 @@ public class TvProvider extends ContentProvider {
     private static final String OP_UPDATE = "update";
     private static final String OP_DELETE = "delete";
 
-    private static final int DATABASE_VERSION = 28;
+    private static final int DATABASE_VERSION = 29;
     private static final String DATABASE_NAME = "tv.db";
     private static final String CHANNELS_TABLE = "channels";
     private static final String PROGRAMS_TABLE = "programs";
@@ -202,8 +202,17 @@ public class TvProvider extends ContentProvider {
         sProgramProjectionMap.put(Programs.COLUMN_PACKAGE_NAME, Programs.COLUMN_PACKAGE_NAME);
         sProgramProjectionMap.put(Programs.COLUMN_CHANNEL_ID, Programs.COLUMN_CHANNEL_ID);
         sProgramProjectionMap.put(Programs.COLUMN_TITLE, Programs.COLUMN_TITLE);
-        sProgramProjectionMap.put(Programs.COLUMN_SEASON_NUMBER, Programs.COLUMN_SEASON_NUMBER);
-        sProgramProjectionMap.put(Programs.COLUMN_EPISODE_NUMBER, Programs.COLUMN_EPISODE_NUMBER);
+        // COLUMN_SEASON_NUMBER is deprecated. Return COLUMN_SEASON_DISPLAY_NUMBER instead.
+        sProgramProjectionMap.put(Programs.COLUMN_SEASON_NUMBER,
+                Programs.COLUMN_SEASON_DISPLAY_NUMBER + " AS " + Programs.COLUMN_SEASON_NUMBER);
+        sProgramProjectionMap.put(Programs.COLUMN_SEASON_DISPLAY_NUMBER,
+                Programs.COLUMN_SEASON_DISPLAY_NUMBER);
+        sProgramProjectionMap.put(Programs.COLUMN_SEASON_TITLE, Programs.COLUMN_SEASON_TITLE);
+        // COLUMN_EPISODE_NUMBER is deprecated. Return COLUMN_EPISODE_DISPLAY_NUMBER instead.
+        sProgramProjectionMap.put(Programs.COLUMN_EPISODE_NUMBER,
+                Programs.COLUMN_EPISODE_DISPLAY_NUMBER + " AS " + Programs.COLUMN_EPISODE_NUMBER);
+        sProgramProjectionMap.put(Programs.COLUMN_EPISODE_DISPLAY_NUMBER,
+                Programs.COLUMN_EPISODE_DISPLAY_NUMBER);
         sProgramProjectionMap.put(Programs.COLUMN_EPISODE_TITLE, Programs.COLUMN_EPISODE_TITLE);
         sProgramProjectionMap.put(Programs.COLUMN_START_TIME_UTC_MILLIS,
                 Programs.COLUMN_START_TIME_UTC_MILLIS);
@@ -267,10 +276,12 @@ public class TvProvider extends ContentProvider {
                 RecordedPrograms.COLUMN_CHANNEL_ID);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_TITLE,
                 RecordedPrograms.COLUMN_TITLE);
-        sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_SEASON_NUMBER,
-                RecordedPrograms.COLUMN_SEASON_NUMBER);
-        sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_EPISODE_NUMBER,
-                RecordedPrograms.COLUMN_EPISODE_NUMBER);
+        sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_SEASON_DISPLAY_NUMBER,
+                RecordedPrograms.COLUMN_SEASON_DISPLAY_NUMBER);
+        sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_SEASON_TITLE,
+                RecordedPrograms.COLUMN_SEASON_TITLE);
+        sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_EPISODE_DISPLAY_NUMBER,
+                RecordedPrograms.COLUMN_EPISODE_DISPLAY_NUMBER);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_EPISODE_TITLE,
                 RecordedPrograms.COLUMN_EPISODE_TITLE);
         sRecordedProgramProjectionMap.put(RecordedPrograms.COLUMN_START_TIME_UTC_MILLIS,
@@ -339,8 +350,9 @@ public class TvProvider extends ContentProvider {
             + RecordedPrograms.COLUMN_INPUT_ID + " TEXT NOT NULL,"
             + RecordedPrograms.COLUMN_CHANNEL_ID + " INTEGER,"
             + RecordedPrograms.COLUMN_TITLE + " TEXT,"
-            + RecordedPrograms.COLUMN_SEASON_NUMBER + " INTEGER,"
-            + RecordedPrograms.COLUMN_EPISODE_NUMBER + " INTEGER,"
+            + RecordedPrograms.COLUMN_SEASON_DISPLAY_NUMBER + " TEXT,"
+            + RecordedPrograms.COLUMN_SEASON_TITLE + " TEXT,"
+            + RecordedPrograms.COLUMN_EPISODE_DISPLAY_NUMBER + " TEXT,"
             + RecordedPrograms.COLUMN_EPISODE_TITLE + " TEXT,"
             + RecordedPrograms.COLUMN_START_TIME_UTC_MILLIS + " INTEGER,"
             + RecordedPrograms.COLUMN_END_TIME_UTC_MILLIS + " INTEGER,"
@@ -420,8 +432,9 @@ public class TvProvider extends ContentProvider {
                     + Programs.COLUMN_PACKAGE_NAME + " TEXT NOT NULL,"
                     + Programs.COLUMN_CHANNEL_ID + " INTEGER,"
                     + Programs.COLUMN_TITLE + " TEXT,"
-                    + Programs.COLUMN_SEASON_NUMBER + " INTEGER,"
-                    + Programs.COLUMN_EPISODE_NUMBER + " INTEGER,"
+                    + Programs.COLUMN_SEASON_DISPLAY_NUMBER + " TEXT,"
+                    + Programs.COLUMN_SEASON_TITLE + " TEXT,"
+                    + Programs.COLUMN_EPISODE_DISPLAY_NUMBER + " TEXT,"
                     + Programs.COLUMN_EPISODE_TITLE + " TEXT,"
                     + Programs.COLUMN_START_TIME_UTC_MILLIS + " INTEGER,"
                     + Programs.COLUMN_END_TIME_UTC_MILLIS + " INTEGER,"
@@ -535,10 +548,26 @@ public class TvProvider extends ContentProvider {
                         + Programs.COLUMN_SEARCHABLE + " INTEGER NOT NULL DEFAULT 1;");
                 oldVersion++;
             }
-            if (oldVersion >= 26) {
+            if (oldVersion <= 28) {
                 db.execSQL("DROP TABLE IF EXISTS " + RECORDED_PROGRAMS_TABLE);
                 db.execSQL(CREATE_RECORDED_PROGRAMS_TABLE_SQL);
+
+                db.execSQL("ALTER TABLE " + PROGRAMS_TABLE + " ADD "
+                        + Programs.COLUMN_SEASON_TITLE + " TEXT;");
+
+                migrateIntegerColumnToTextColumn(db, PROGRAMS_TABLE, Programs.COLUMN_SEASON_NUMBER,
+                        Programs.COLUMN_SEASON_DISPLAY_NUMBER);
+                migrateIntegerColumnToTextColumn(db, PROGRAMS_TABLE, Programs.COLUMN_EPISODE_NUMBER,
+                        Programs.COLUMN_EPISODE_DISPLAY_NUMBER);
+                oldVersion = 29;
             }
+        }
+
+        private static void migrateIntegerColumnToTextColumn(SQLiteDatabase db, String table,
+                String integerColumn, String textColumn) {
+            db.execSQL("ALTER TABLE " + table + " ADD " + textColumn + " TEXT;");
+            db.execSQL("UPDATE " + table + " SET " + textColumn + " = CAST(" + integerColumn
+                    + " AS TEXT);");
         }
     }
 
@@ -717,6 +746,7 @@ public class TvProvider extends ContentProvider {
         values.put(Programs.COLUMN_PACKAGE_NAME, getCallingPackage_());
 
         checkAndConvertGenre(values);
+        checkAndConvertDeprecatedColumns(values);
 
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         long rowId = db.insert(PROGRAMS_TABLE, null, values);
@@ -820,8 +850,10 @@ public class TvProvider extends ContentProvider {
                     && !callerHasModifyParentalControlsPermission()) {
                 throw new SecurityException("Not allowed to modify Channels.COLUMN_LOCKED");
             }
-        } else if (params.getTables().equals(PROGRAMS_TABLE)
-                || params.getTables().equals(RECORDED_PROGRAMS_TABLE)) {
+        } else if (params.getTables().equals(PROGRAMS_TABLE)) {
+            checkAndConvertGenre(values);
+            checkAndConvertDeprecatedColumns(values);
+        } else if (params.getTables().equals(RECORDED_PROGRAMS_TABLE)) {
             checkAndConvertGenre(values);
         }
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -990,6 +1022,23 @@ public class TvProvider extends ContentProvider {
                             Genres.encode(genreSet.toArray(new String[genreSet.size()])));
                 }
             }
+        }
+    }
+
+    private void checkAndConvertDeprecatedColumns(ContentValues values) {
+        if (values.containsKey(Programs.COLUMN_SEASON_NUMBER)) {
+            if (!values.containsKey(Programs.COLUMN_SEASON_DISPLAY_NUMBER)) {
+                values.put(Programs.COLUMN_SEASON_DISPLAY_NUMBER, values.getAsInteger(
+                        Programs.COLUMN_SEASON_NUMBER));
+            }
+            values.remove(Programs.COLUMN_SEASON_NUMBER);
+        }
+        if (values.containsKey(Programs.COLUMN_EPISODE_NUMBER)) {
+            if (!values.containsKey(Programs.COLUMN_EPISODE_DISPLAY_NUMBER)) {
+                values.put(Programs.COLUMN_EPISODE_DISPLAY_NUMBER, values.getAsInteger(
+                        Programs.COLUMN_EPISODE_NUMBER));
+            }
+            values.remove(Programs.COLUMN_EPISODE_NUMBER);
         }
     }
 
