@@ -81,7 +81,7 @@ public class TvProvider extends ContentProvider {
     private static final String OP_UPDATE = "update";
     private static final String OP_DELETE = "delete";
 
-    private static final int DATABASE_VERSION = 29;
+    static final int DATABASE_VERSION = 29;
     private static final String DATABASE_NAME = "tv.db";
     private static final String CHANNELS_TABLE = "channels";
     private static final String PROGRAMS_TABLE = "programs";
@@ -378,8 +378,17 @@ public class TvProvider extends ContentProvider {
             + RecordedPrograms.COLUMN_INTERNAL_PROVIDER_FLAG4 + " INTEGER,"
             + RecordedPrograms.COLUMN_VERSION_NUMBER + " INTEGER);";
 
-    private static class DatabaseHelper extends SQLiteOpenHelper {
-        DatabaseHelper(Context context) {
+    static class DatabaseHelper extends SQLiteOpenHelper {
+        private static DatabaseHelper sSingleton = null;
+
+        public static synchronized DatabaseHelper getInstance(Context context) {
+            if (sSingleton == null) {
+                sSingleton = new DatabaseHelper(context);
+            }
+            return sSingleton;
+        }
+
+        private DatabaseHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
         }
 
@@ -561,6 +570,7 @@ public class TvProvider extends ContentProvider {
                         Programs.COLUMN_EPISODE_DISPLAY_NUMBER);
                 oldVersion = 29;
             }
+            Log.i(TAG, "Upgrading from version " + oldVersion + " to " + newVersion + " is done.");
         }
 
         private static void migrateIntegerColumnToTextColumn(SQLiteDatabase db, String table,
@@ -580,10 +590,18 @@ public class TvProvider extends ContentProvider {
         if (DEBUG) {
             Log.d(TAG, "Creating TvProvider");
         }
-        mOpenHelper = new DatabaseHelper(getContext());
-        deleteUnconsolidatedWatchedProgramsRows();
+        mOpenHelper = DatabaseHelper.getInstance(getContext());
         scheduleEpgDataCleanup();
         buildGenreMap();
+
+        // DB operation, which may trigger upgrade, should not happen in onCreate.
+        new AsyncTask<Object, Object, Object>() {
+            @Override
+            protected Object doInBackground(Object... params) {
+                deleteUnconsolidatedWatchedProgramsRows();
+                return null;
+            }
+        }.execute();
         return true;
     }
 

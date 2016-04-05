@@ -70,5 +70,15 @@
         </provider>
 
         <service android:name="EpgDataCleanupService" />
+
+        <!-- Handles database upgrades after OTAs -->
+        <receiver android:name="TvProviderUpgradeReceiver">
+            <!-- This broadcast is sent after the core system has finished
+                 booting, before the home app is launched or BOOT_COMPLETED
+                 is sent. -->
+            <intent-filter>
+                <action android:name="android.intent.action.PRE_BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
