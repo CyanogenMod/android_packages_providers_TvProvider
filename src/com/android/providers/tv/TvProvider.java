@@ -595,9 +595,9 @@ public class TvProvider extends ContentProvider {
         buildGenreMap();
 
         // DB operation, which may trigger upgrade, should not happen in onCreate.
-        new AsyncTask<Object, Object, Object>() {
+        new AsyncTask<Void, Void, Void>() {
             @Override
-            protected Object doInBackground(Object... params) {
+            protected Void doInBackground(Void... params) {
                 deleteUnconsolidatedWatchedProgramsRows();
                 return null;
             }

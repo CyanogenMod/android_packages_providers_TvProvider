@@ -71,7 +71,6 @@ public class TvProviderUpgradeReceiver extends BroadcastReceiver {
                     Log.i(TAG, "Creating or opening tv provider database");
                     helper.getWritableDatabase();
                 }
-                helper.close();
             }
         } catch (Throwable t) {
             // Something has gone terribly wrong. Disable this receiver for good so we can't
