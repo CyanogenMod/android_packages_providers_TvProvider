@@ -35,7 +35,7 @@ import com.android.providers.tv.TvProvider.DatabaseHelper;
  * started.  It is launched in a special state, with no content provider
  * or custom application class associated with the process running.
  *
- * It's job is to prime the tv provider database. Either create it
+ * Its job is to prime the tv provider database. Either create it
  * if it doesn't exist, or open it and force any necessary upgrades.
  * All of this heavy lifting happens before the boot animation ends.
  */
