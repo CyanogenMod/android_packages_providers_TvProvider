@@ -81,7 +81,7 @@ public class TvProvider extends ContentProvider {
     private static final String OP_UPDATE = "update";
     private static final String OP_DELETE = "delete";
 
-    static final int DATABASE_VERSION = 29;
+    static final int DATABASE_VERSION = 30;
     private static final String DATABASE_NAME = "tv.db";
     private static final String CHANNELS_TABLE = "channels";
     private static final String PROGRAMS_TABLE = "programs";
@@ -376,7 +376,10 @@ public class TvProvider extends ContentProvider {
             + RecordedPrograms.COLUMN_INTERNAL_PROVIDER_FLAG2 + " INTEGER,"
             + RecordedPrograms.COLUMN_INTERNAL_PROVIDER_FLAG3 + " INTEGER,"
             + RecordedPrograms.COLUMN_INTERNAL_PROVIDER_FLAG4 + " INTEGER,"
-            + RecordedPrograms.COLUMN_VERSION_NUMBER + " INTEGER);";
+            + RecordedPrograms.COLUMN_VERSION_NUMBER + " INTEGER,"
+            + "FOREIGN KEY(" + RecordedPrograms.COLUMN_CHANNEL_ID + ") "
+                    + "REFERENCES " + CHANNELS_TABLE + "(" + Channels._ID + ") "
+                    + "ON UPDATE CASCADE ON DELETE SET NULL);";
 
     static class DatabaseHelper extends SQLiteOpenHelper {
         private static DatabaseHelper sSingleton = null;
@@ -558,17 +561,18 @@ public class TvProvider extends ContentProvider {
                 oldVersion++;
             }
             if (oldVersion <= 28) {
-                db.execSQL("DROP TABLE IF EXISTS " + RECORDED_PROGRAMS_TABLE);
-                db.execSQL(CREATE_RECORDED_PROGRAMS_TABLE_SQL);
-
                 db.execSQL("ALTER TABLE " + PROGRAMS_TABLE + " ADD "
                         + Programs.COLUMN_SEASON_TITLE + " TEXT;");
-
                 migrateIntegerColumnToTextColumn(db, PROGRAMS_TABLE, Programs.COLUMN_SEASON_NUMBER,
                         Programs.COLUMN_SEASON_DISPLAY_NUMBER);
                 migrateIntegerColumnToTextColumn(db, PROGRAMS_TABLE, Programs.COLUMN_EPISODE_NUMBER,
                         Programs.COLUMN_EPISODE_DISPLAY_NUMBER);
                 oldVersion = 29;
+            }
+            if (oldVersion == 29) {
+                db.execSQL("DROP TABLE IF EXISTS " + RECORDED_PROGRAMS_TABLE);
+                db.execSQL(CREATE_RECORDED_PROGRAMS_TABLE_SQL);
+                oldVersion = 30;
             }
             Log.i(TAG, "Upgrading from version " + oldVersion + " to " + newVersion + " is done.");
         }
